@@ -103,15 +103,59 @@
       letter-spacing: 0.3px;
     }
 
-    /* Keep it usable on small screens */
-    @media (max-width: 900px) {
-      .row { gap: 18px; }
-      .unit { width: 120px; }
-      .tile { border-radius: 22px; }
-    }
+    /* -------- MOBILE: smaller tiles in a grid -------- */
+    @media (max-width: 768px) {
 
-    @media (max-width: 720px) {
-      .row { flex-wrap: wrap; gap: 18px 22px; }
+      .wrap {
+        padding: 14px 10px;
+      }
+
+      .title {
+        font-size: 20px;
+        margin: 0 0 14px;
+        padding: 0 10px;
+        line-height: 1.2;
+      }
+
+      /* 2x2 grid */
+      .row {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 14px 12px;
+        justify-items: center;
+        align-items: start;
+        flex-wrap: initial;
+      }
+
+      /* Smaller cards */
+      .unit {
+        width: 100%;
+        max-width: 150px;
+      }
+
+      .label {
+        font-size: 10px;
+        margin-bottom: 6px;
+        letter-spacing: 1.4px;
+        opacity: 0.55;
+      }
+
+      .tile {
+        height: 118px;
+        border-radius: 18px;
+      }
+
+      .num {
+        font-size: 54px;
+        letter-spacing: 1px;
+      }
+
+      .end-date {
+        margin-top: 16px;
+        font-size: 12px;
+        padding: 0 10px;
+        opacity: 0.6;
+      }
     }
   </style>
 </head>
@@ -148,12 +192,14 @@
   <script>
     const { DateTime } = luxon;
 
+    // Target: 6 February 2026 @ 4:30 PM (Queensland time)
     const END_ZONE = "Australia/Brisbane";
     const END_DT = DateTime.fromObject(
       { year: 2026, month: 2, day: 6, hour: 16, minute: 30 },
       { zone: END_ZONE }
     );
 
+    // Bottom line: date + time only
     document.getElementById("endDate").textContent =
       END_DT.toFormat("MMMM d, yyyy 'at' h:mm a");
 
@@ -161,15 +207,15 @@
 
     function tick() {
       const now = DateTime.now().setZone(END_ZONE);
-      let diff = END_DT.diff(now, ["days", "hours", "minutes", "seconds"]).toObject();
 
-      // Luxon can return fractional seconds; normalize cleanly
       let totalSeconds = Math.max(0, Math.floor(END_DT.toSeconds() - now.toSeconds()));
 
       const days = Math.floor(totalSeconds / 86400);
       totalSeconds -= days * 86400;
+
       const hours = Math.floor(totalSeconds / 3600);
       totalSeconds -= hours * 3600;
+
       const minutes = Math.floor(totalSeconds / 60);
       const seconds = totalSeconds - minutes * 60;
 
@@ -180,7 +226,7 @@
     }
 
     tick();
-    setInterval(tick, 250); // tighter interval keeps it snappy around rollovers
+    setInterval(tick, 250); // keeps rollovers snappy
   </script>
 </body>
 </html>
