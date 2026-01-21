@@ -14,6 +14,7 @@
 
   <style>
     :root { color-scheme: dark; }
+
     body {
       margin: 0;
       background: #0b0b0b;
@@ -23,30 +24,54 @@
       place-items: center;
       min-height: 100vh;
     }
+
     .wrap {
-      width: min(900px, 92vw);
+      width: min(1100px, 96vw);
       text-align: center;
+      padding: 24px 12px;
     }
+
     .title {
-      font-size: clamp(22px, 3.6vw, 34px);
-      font-weight: 700;
-      margin: 0 0 6px;
+      font-size: clamp(26px, 4vw, 44px);
+      font-weight: 800;
+      margin: 0 0 34px;
+      letter-spacing: 0.2px;
     }
-    .subtitle {
-      opacity: 0.85;
-      margin: 0 0 28px;
-      font-size: clamp(14px, 2.2vw, 18px);
-    }
+
+    /* Countdown sits in the middle */
     .flipdown {
       margin: 0 auto;
+      transform: scale(1.05);
+      transform-origin: top center;
     }
+
+    /* Keep all rotor groups on one line (Days / Hours / Minutes / Seconds) */
     .flipdown .rotor-group {
-      margin: 0 14px;
+      display: inline-flex !important;
+      flex-direction: column !important;
+      margin: 0 22px !important;
+      vertical-align: top !important;
     }
-    .footer {
-      margin-top: 18px;
+
+    /* Clean, small headings like your reference */
+    .flipdown .rotor-group-heading {
+      font-size: 12px !important;
+      letter-spacing: 1.2px !important;
+      text-transform: uppercase !important;
+      opacity: 0.7 !important;
+      margin-bottom: 10px !important;
+    }
+
+    .flipdown .rotor {
+      border-radius: 8px !important;
+    }
+
+    /* Bottom date/time line only */
+    .subtitle {
       opacity: 0.65;
-      font-size: 13px;
+      margin: 32px 0 0;
+      font-size: 14px;
+      letter-spacing: 0.4px;
     }
   </style>
 </head>
@@ -54,11 +79,10 @@
 <body>
   <div class="wrap">
     <h1 class="title">Days Left Until I’m Someone Else’s Problem</h1>
-    <p id="untilLine" class="subtitle"></p>
 
     <div id="flipdown" class="flipdown"></div>
 
-    <div class="footer">Scan the QR on my desk to check progress.</div>
+    <p id="untilLine" class="subtitle"></p>
   </div>
 
   <script>
@@ -71,9 +95,11 @@
       { zone: END_ZONE }
     );
 
+    // Display ONLY date + time (no timezone text)
     document.getElementById("untilLine").textContent =
-      `until ${END_DT.toFormat("MMMM d, yyyy 'at' h:mm a")} (${END_ZONE})`;
+      END_DT.toFormat("MMMM d, yyyy 'at' h:mm a");
 
+    // FlipDown expects a UNIX timestamp in seconds
     const endEpochSeconds = Math.floor(END_DT.toSeconds());
     const nowEpoch = Math.floor(DateTime.now().setZone(END_ZONE).toSeconds());
     const target = Math.max(endEpochSeconds, nowEpoch);
