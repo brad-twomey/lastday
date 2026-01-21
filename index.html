@@ -5,15 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Days Left Until I’m Someone Else’s Problem</title>
 
-  <!-- FlipClock -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/flipclock/0.7.8/flipclock.min.css">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/flipclock/0.7.8/flipclock.min.js"></script>
-
-  <!-- Luxon -->
+  <!-- Luxon (timezone-safe) -->
   <script src="https://cdn.jsdelivr.net/npm/luxon@3/build/global/luxon.min.js"></script>
 
   <style>
+    :root { color-scheme: dark; }
+
     body {
       margin: 0;
       background: #000;
@@ -24,50 +21,97 @@
       min-height: 100vh;
     }
 
-    .wrap {
-      text-align: center;
-    }
+    .wrap { text-align: center; padding: 18px 12px; }
 
     .title {
-      font-size: clamp(20px, 2.6vw, 30px);
-      font-weight: 600;
-      margin-bottom: 22px;
+      font-size: clamp(26px, 4vw, 46px);
+      font-weight: 800;
+      margin: 0 0 34px;
       letter-spacing: 0.2px;
     }
 
-    .clock {
-      margin: 0 auto;
+    .row {
+      display: flex;
+      justify-content: center;
+      gap: clamp(22px, 3vw, 46px);
+      align-items: flex-start;
+      flex-wrap: nowrap;
     }
 
-    /* FlipClock styling to match your reference */
-    .flip-clock-wrapper ul {
-      width: 90px;
-      height: 120px;
-      margin: 0 8px;
+    .unit {
+      width: clamp(140px, 12vw, 170px);
     }
 
-    .flip-clock-wrapper ul li a div div.inn {
-      background: #111;
-      color: #fff;
-      font-size: 64px;
-      line-height: 120px;
-      border-radius: 18px;
-    }
-
-    .flip-clock-divider .flip-clock-label {
-      color: rgba(255,255,255,0.5);
+    .label {
       font-size: 12px;
-      letter-spacing: 1.2px;
+      letter-spacing: 1.6px;
       text-transform: uppercase;
-      margin-top: 8px;
+      color: rgba(255,255,255,0.45);
+      margin-bottom: 12px;
     }
 
-    /* Bottom date/time only */
+    .tile {
+      height: clamp(160px, 16vw, 210px);
+      border-radius: 28px;
+      background: #111;
+      box-shadow:
+        0 18px 60px rgba(0,0,0,0.55),
+        inset 0 1px 0 rgba(255,255,255,0.06);
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* mid split line like a flip card */
+    .tile::after {
+      content: "";
+      position: absolute;
+      left: 0; right: 0;
+      top: 50%;
+      height: 2px;
+      background: rgba(0,0,0,0.55);
+      box-shadow: 0 1px 0 rgba(255,255,255,0.05);
+      transform: translateY(-1px);
+    }
+
+    .num {
+      height: 100%;
+      display: grid;
+      place-items: center;
+      font-weight: 800;
+      font-size: clamp(72px, 7vw, 110px);
+      letter-spacing: 2px;
+      color: #fff;
+      text-shadow: 0 2px 0 rgba(0,0,0,0.55);
+    }
+
+    /* subtle highlight top half */
+    .shine {
+      position: absolute;
+      left: 0; right: 0;
+      top: 0;
+      height: 52%;
+      background: linear-gradient(to bottom,
+        rgba(255,255,255,0.06),
+        rgba(255,255,255,0.00));
+      pointer-events: none;
+    }
+
     .end-date {
-      margin-top: 26px;
+      margin-top: 34px;
       font-size: 14px;
       opacity: 0.6;
       letter-spacing: 0.3px;
+    }
+
+    /* Keep it usable on small screens */
+    @media (max-width: 900px) {
+      .row { gap: 18px; }
+      .unit { width: 120px; }
+      .tile { border-radius: 22px; }
+    }
+
+    @media (max-width: 720px) {
+      .row { flex-wrap: wrap; gap: 18px 22px; }
     }
   </style>
 </head>
@@ -76,7 +120,27 @@
   <div class="wrap">
     <div class="title">Days Left Until I’m Someone Else’s Problem</div>
 
-    <div class="clock"></div>
+    <div class="row" aria-label="Countdown timer">
+      <div class="unit">
+        <div class="label">Days</div>
+        <div class="tile"><div class="shine"></div><div class="num" id="d">00</div></div>
+      </div>
+
+      <div class="unit">
+        <div class="label">Hours</div>
+        <div class="tile"><div class="shine"></div><div class="num" id="h">00</div></div>
+      </div>
+
+      <div class="unit">
+        <div class="label">Minutes</div>
+        <div class="tile"><div class="shine"></div><div class="num" id="m">00</div></div>
+      </div>
+
+      <div class="unit">
+        <div class="label">Seconds</div>
+        <div class="tile"><div class="shine"></div><div class="num" id="s">00</div></div>
+      </div>
+    </div>
 
     <div class="end-date" id="endDate"></div>
   </div>
@@ -90,21 +154,33 @@
       { zone: END_ZONE }
     );
 
-    // Bottom line: date + time ONLY
     document.getElementById("endDate").textContent =
       END_DT.toFormat("MMMM d, yyyy 'at' h:mm a");
 
-    const now = DateTime.now().setZone(END_ZONE);
-    const secondsRemaining = Math.max(
-      Math.floor(END_DT.diff(now, "seconds").seconds),
-      0
-    );
+    const pad2 = (n) => String(Math.max(0, n)).padStart(2, "0");
 
-    new FlipClock(document.querySelector('.clock'), secondsRemaining, {
-      clockFace: 'DailyCounter',
-      countdown: true,
-      showSeconds: true
-    });
+    function tick() {
+      const now = DateTime.now().setZone(END_ZONE);
+      let diff = END_DT.diff(now, ["days", "hours", "minutes", "seconds"]).toObject();
+
+      // Luxon can return fractional seconds; normalize cleanly
+      let totalSeconds = Math.max(0, Math.floor(END_DT.toSeconds() - now.toSeconds()));
+
+      const days = Math.floor(totalSeconds / 86400);
+      totalSeconds -= days * 86400;
+      const hours = Math.floor(totalSeconds / 3600);
+      totalSeconds -= hours * 3600;
+      const minutes = Math.floor(totalSeconds / 60);
+      const seconds = totalSeconds - minutes * 60;
+
+      document.getElementById("d").textContent = pad2(days);
+      document.getElementById("h").textContent = pad2(hours);
+      document.getElementById("m").textContent = pad2(minutes);
+      document.getElementById("s").textContent = pad2(seconds);
+    }
+
+    tick();
+    setInterval(tick, 250); // tighter interval keeps it snappy around rollovers
   </script>
 </body>
 </html>
