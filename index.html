@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Days Left Until I’m Someone Else’s Problem</title>
 
-  <!-- FlipClock.js -->
+  <!-- FlipClock -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/flipclock/0.7.8/flipclock.min.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/flipclock/0.7.8/flipclock.min.js"></script>
@@ -16,8 +16,8 @@
   <style>
     body {
       margin: 0;
-      background: #0b0b0b;
-      color: #f2f2f2;
+      background: #000;
+      color: #fff;
       font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
       display: grid;
       place-items: center;
@@ -29,23 +29,41 @@
     }
 
     .title {
-      font-size: clamp(24px, 3vw, 38px);
-      font-weight: 700;
-      margin-bottom: 26px;
+      font-size: clamp(20px, 2.6vw, 30px);
+      font-weight: 600;
+      margin-bottom: 22px;
+      letter-spacing: 0.2px;
     }
 
     .clock {
       margin: 0 auto;
     }
 
-    .flip-clock-label {
-      color: rgba(255,255,255,0.55);
+    /* FlipClock styling to match your reference */
+    .flip-clock-wrapper ul {
+      width: 90px;
+      height: 120px;
+      margin: 0 8px;
+    }
+
+    .flip-clock-wrapper ul li a div div.inn {
+      background: #111;
+      color: #fff;
+      font-size: 64px;
+      line-height: 120px;
+      border-radius: 18px;
+    }
+
+    .flip-clock-divider .flip-clock-label {
+      color: rgba(255,255,255,0.5);
       font-size: 12px;
       letter-spacing: 1.2px;
       text-transform: uppercase;
+      margin-top: 8px;
     }
 
-    .date {
+    /* Bottom date/time only */
+    .end-date {
       margin-top: 26px;
       font-size: 14px;
       opacity: 0.6;
@@ -60,7 +78,7 @@
 
     <div class="clock"></div>
 
-    <div class="date" id="dateLine"></div>
+    <div class="end-date" id="endDate"></div>
   </div>
 
   <script>
@@ -72,16 +90,17 @@
       { zone: END_ZONE }
     );
 
-    document.getElementById("dateLine").textContent =
+    // Bottom line: date + time ONLY
+    document.getElementById("endDate").textContent =
       END_DT.toFormat("MMMM d, yyyy 'at' h:mm a");
 
     const now = DateTime.now().setZone(END_ZONE);
-    let secondsRemaining = Math.max(
+    const secondsRemaining = Math.max(
       Math.floor(END_DT.diff(now, "seconds").seconds),
       0
     );
 
-    const clock = new FlipClock(document.querySelector('.clock'), secondsRemaining, {
+    new FlipClock(document.querySelector('.clock'), secondsRemaining, {
       clockFace: 'DailyCounter',
       countdown: true,
       showSeconds: true
