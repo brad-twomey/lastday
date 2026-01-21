@@ -5,16 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Days Left Until I’m Someone Else’s Problem</title>
 
-  <!-- FlipDown (flip clock countdown) -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flipdown@0.3.2/dist/flipdown.min.css">
-  <script src="https://cdn.jsdelivr.net/npm/flipdown@0.3.2/dist/flipdown.min.js"></script>
+  <!-- FlipClock.js -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/flipclock/0.7.8/flipclock.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/flipclock/0.7.8/flipclock.min.js"></script>
 
-  <!-- Luxon for timezone-safe dates -->
+  <!-- Luxon -->
   <script src="https://cdn.jsdelivr.net/npm/luxon@3/build/global/luxon.min.js"></script>
 
   <style>
-    :root { color-scheme: dark; }
-
     body {
       margin: 0;
       background: #0b0b0b;
@@ -26,90 +25,67 @@
     }
 
     .wrap {
-      width: min(1100px, 96vw);
       text-align: center;
-      padding: 24px 12px;
     }
 
     .title {
-      font-size: clamp(26px, 4vw, 44px);
-      font-weight: 800;
-      margin: 0 0 34px;
-      letter-spacing: 0.2px;
+      font-size: clamp(24px, 3vw, 38px);
+      font-weight: 700;
+      margin-bottom: 26px;
     }
 
-    /* Countdown sits in the middle */
-    .flipdown {
+    .clock {
       margin: 0 auto;
-      transform: scale(1.05);
-      transform-origin: top center;
     }
 
-    /* Keep all rotor groups on one line (Days / Hours / Minutes / Seconds) */
-    .flipdown .rotor-group {
-      display: inline-flex !important;
-      flex-direction: column !important;
-      margin: 0 22px !important;
-      vertical-align: top !important;
+    .flip-clock-label {
+      color: rgba(255,255,255,0.55);
+      font-size: 12px;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
     }
 
-    /* Clean, small headings like your reference */
-    .flipdown .rotor-group-heading {
-      font-size: 12px !important;
-      letter-spacing: 1.2px !important;
-      text-transform: uppercase !important;
-      opacity: 0.7 !important;
-      margin-bottom: 10px !important;
-    }
-
-    .flipdown .rotor {
-      border-radius: 8px !important;
-    }
-
-    /* Bottom date/time line only */
-    .subtitle {
-      opacity: 0.65;
-      margin: 32px 0 0;
+    .date {
+      margin-top: 26px;
       font-size: 14px;
-      letter-spacing: 0.4px;
+      opacity: 0.6;
+      letter-spacing: 0.3px;
     }
   </style>
 </head>
 
 <body>
   <div class="wrap">
-    <h1 class="title">Days Left Until I’m Someone Else’s Problem</h1>
+    <div class="title">Days Left Until I’m Someone Else’s Problem</div>
 
-    <div id="flipdown" class="flipdown"></div>
+    <div class="clock"></div>
 
-    <p id="untilLine" class="subtitle"></p>
+    <div class="date" id="dateLine"></div>
   </div>
 
   <script>
     const { DateTime } = luxon;
 
-    // Target: 6 February 2026 @ 4:30 PM (Queensland time)
     const END_ZONE = "Australia/Brisbane";
     const END_DT = DateTime.fromObject(
       { year: 2026, month: 2, day: 6, hour: 16, minute: 30 },
       { zone: END_ZONE }
     );
 
-    // Display ONLY date + time (no timezone text)
-    document.getElementById("untilLine").textContent =
+    document.getElementById("dateLine").textContent =
       END_DT.toFormat("MMMM d, yyyy 'at' h:mm a");
 
-    // FlipDown expects a UNIX timestamp in seconds
-    const endEpochSeconds = Math.floor(END_DT.toSeconds());
-    const nowEpoch = Math.floor(DateTime.now().setZone(END_ZONE).toSeconds());
-    const target = Math.max(endEpochSeconds, nowEpoch);
+    const now = DateTime.now().setZone(END_ZONE);
+    let secondsRemaining = Math.max(
+      Math.floor(END_DT.diff(now, "seconds").seconds),
+      0
+    );
 
-    new FlipDown(target, "flipdown")
-      .start()
-      .ifEnded(() => {
-        document.querySelector(".title").textContent =
-          "I am officially someone else’s problem.";
-      });
+    const clock = new FlipClock(document.querySelector('.clock'), secondsRemaining, {
+      clockFace: 'DailyCounter',
+      countdown: true,
+      showSeconds: true
+    });
   </script>
 </body>
 </html>
